@@ -5,6 +5,7 @@
     "rs-aws-shop-back": "bin/rs-aws-shop-back.js"
   },
   "scripts": {
+    "deploy": "npm run build && cdk deploy",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
