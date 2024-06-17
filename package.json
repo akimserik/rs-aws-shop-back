@@ -8,7 +8,7 @@
     "deploy": "npm run build && cdk deploy",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
+    "test": "jest --watch",
     "cdk": "cdk"
   },
   "devDependencies": {

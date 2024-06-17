@@ -11,7 +11,7 @@ const response = (statusCode: number, message: Message) => ({
   body: JSON.stringify(message),
 });
 
-exports.handler = async (event: APIGatewayProxyEvent) => {
+export const getProductByIdHandler = async (event: APIGatewayProxyEvent) => {
   try {
     if (event?.pathParameters?.productId) {
       const productId = event.pathParameters.productId;

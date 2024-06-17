@@ -13,7 +13,7 @@ export class RsAwsShopBackStack extends cdk.Stack {
       "getProductsList",
       {
         code: lambda.Code.fromAsset("lambda"),
-        handler: "getProductsList.handler",
+        handler: "getProductsList.getProductsListHandler",
         runtime: lambda.Runtime.NODEJS_18_X,
       },
     );
@@ -21,7 +21,7 @@ export class RsAwsShopBackStack extends cdk.Stack {
     // products/{productId}
     const getProductByIdFunction = new lambda.Function(this, "getProductById", {
       code: lambda.Code.fromAsset("lambda"),
-      handler: "getProductById.handler",
+      handler: "getProductById.getProductByIdHandler",
       runtime: lambda.Runtime.NODEJS_18_X,
     });
 

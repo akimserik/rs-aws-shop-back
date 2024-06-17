@@ -1,8 +1,10 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import products from "./mockData";
 import { headersConfig } from "./utils";
 
-exports.handler = async (event: APIGatewayProxyEvent) => {
+export const getProductsListHandler = async (
+  event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> => {
   try {
     return {
       statusCode: 200,
