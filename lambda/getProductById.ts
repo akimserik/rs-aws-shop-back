@@ -1,7 +1,7 @@
-import products from "./mockData";
+import products from "./mockProducts";
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { Product } from "./types";
-import { headersConfig } from "./utils";
+import { Product } from "../types/product";
+import { headersConfig } from "./headers";
 
 type Message = { message: string } | Product;
 

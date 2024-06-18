@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import products from "./mockData";
-import { headersConfig } from "./utils";
+import products from "./mockProducts";
+import { headersConfig } from "./headers";
 
 export const getProductsListHandler = async (
   event: APIGatewayProxyEvent,

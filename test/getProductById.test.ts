@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { getProductByIdHandler } from "../lambda/getProductById";
-import products from "../lambda/mockData";
+import products from "../lambda/mockProducts";
 
 describe("getProductById handler", () => {
   it("returns product by ID", async () => {
