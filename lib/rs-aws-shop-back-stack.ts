@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as dynamoDb from "aws-cdk-lib/aws-dynamodb";
+import { DescribeTableCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Construct } from "constructs";
 
 export class RsAwsShopBackStack extends cdk.Stack {
@@ -8,6 +10,12 @@ export class RsAwsShopBackStack extends cdk.Stack {
     super(scope, id, props);
 
     // products
+    const productsTable = dynamoDb.Table.fromTableName(
+      this,
+      "products",
+      "products",
+    );
+
     const getProductsListFunction = new lambda.Function(
       this,
       "getProductsList",
@@ -17,6 +25,13 @@ export class RsAwsShopBackStack extends cdk.Stack {
         runtime: lambda.Runtime.NODEJS_18_X,
       },
     );
+
+    getProductsListFunction.addEnvironment(
+      "TABLE_NAME",
+      productsTable.tableName,
+    );
+
+    productsTable.grantReadWriteData(getProductsListFunction);
 
     // products/{productId}
     const getProductByIdFunction = new lambda.Function(this, "getProductById", {
