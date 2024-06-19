@@ -1,0 +1,84 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Product API"
+servers:
+  - url: https://r0wopa8eh9.execute-api.eu-central-1.amazonaws.com/prod
+paths:
+  /products:
+    get:
+      summary: "Get all products"
+      responses:
+        "200":
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Product"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /products/{id}:
+    get:
+      summary: "Get product by ID"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: "Bad request, product ID not provided"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "Product not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Product:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+        title:
+          type: "string"
+        description:
+          type: "string"
+        price:
+          type: "number"
+      required:
+        - "id"
+        - "title"
+        - "description"
+        - "price"
+    Error:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+      required:
+        - "message"
