@@ -3,9 +3,8 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { headersConfig } from "./headers";
 import { getMappedProducts } from "./getMappedProducts";
+import { PRODUCTS_TABLE, STOCKS_TABLE } from "./constants";
 
-const PRODUCTS_TABLE = "products";
-const STOCKS_TABLE = "stocks";
 const dynamoDb = DynamoDBDocument.from(new DynamoDB());
 
 export const getProductsListHandler = async (

@@ -14,7 +14,6 @@ export class RsAwsShopBackStack extends cdk.Stack {
       "products",
       "products",
     );
-
     const stocksTable = dynamoDb.Table.fromTableName(this, "stocks", "stocks");
 
     const getProductsListFunction = new lambda.Function(
@@ -39,8 +38,16 @@ export class RsAwsShopBackStack extends cdk.Stack {
       code: lambda.Code.fromAsset("lambda"),
       handler: "getProductById.getProductByIdHandler",
       runtime: lambda.Runtime.NODEJS_18_X,
+      environment: {
+        PRODUCTS_TABLE: productsTable.tableName,
+        STOCKS_TABLE: stocksTable.tableName,
+      },
     });
 
+    productsTable.grantReadWriteData(getProductByIdFunction);
+    stocksTable.grantReadWriteData(getProductByIdFunction);
+
+    // api
     const api = new apigateway.RestApi(this, "ProductsApi", {
       restApiName: "Products Service",
     });
