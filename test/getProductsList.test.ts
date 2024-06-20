@@ -2,6 +2,10 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { getProductsListHandler } from "../lambda/getProductsList";
 import products from "../lambda/mockProducts";
 
+jest.mock("../lambda/getMappedProducts", () => ({
+  getMappedProducts: () => products,
+}));
+
 describe("getProducts handler", () => {
   it("returns all products", async () => {
     const mockEvent = {} as APIGatewayProxyEvent;
