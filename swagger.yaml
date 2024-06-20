@@ -3,6 +3,9 @@ info:
   version: "1.0.0"
   title: "Product API"
 servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/SAKIMGEREYEV/Products/1.0.0
   - url: https://r0wopa8eh9.execute-api.eu-central-1.amazonaws.com/prod
 paths:
   /products:
@@ -69,6 +72,8 @@ components:
         description:
           type: "string"
         price:
+          type: "number"
+        count:
           type: "number"
       required:
         - "id"
