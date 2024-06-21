@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { headersConfig } from "./headers";
+import { headersConfig } from "./helpers/headers";
 import { getMappedProducts } from "./getMappedProducts";
 import { PRODUCTS_TABLE, STOCKS_TABLE } from "./constants";
 

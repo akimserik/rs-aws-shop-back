@@ -8,7 +8,7 @@ export class RsAwsShopBackStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // products
+    // initialize DBs
     const productsTable = dynamoDb.Table.fromTableName(
       this,
       "products",
@@ -16,6 +16,7 @@ export class RsAwsShopBackStack extends cdk.Stack {
     );
     const stocksTable = dynamoDb.Table.fromTableName(this, "stocks", "stocks");
 
+    // products
     const getProductsListFunction = new lambda.Function(
       this,
       "getProductsList",
@@ -47,7 +48,21 @@ export class RsAwsShopBackStack extends cdk.Stack {
     productsTable.grantReadWriteData(getProductByIdFunction);
     stocksTable.grantReadWriteData(getProductByIdFunction);
 
-    // api
+    // create product
+    const createProductFunction = new lambda.Function(this, "createProduct", {
+      code: lambda.Code.fromAsset("lambda"),
+      handler: "createProduct.createPruductHandler",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      environment: {
+        PRODUCTS_TABLE: productsTable.tableName,
+        STOCKS_TABLE: stocksTable.tableName,
+      },
+    });
+
+    productsTable.grantReadWriteData(createProductFunction);
+    stocksTable.grantReadWriteData(createProductFunction);
+
+    // create APIs
     const api = new apigateway.RestApi(this, "ProductsApi", {
       restApiName: "Products Service",
     });
@@ -62,6 +77,11 @@ export class RsAwsShopBackStack extends cdk.Stack {
     productByIdResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getProductByIdFunction),
+    );
+
+    productsResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createProductFunction),
     );
   }
 }
