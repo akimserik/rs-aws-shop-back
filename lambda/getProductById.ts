@@ -9,6 +9,8 @@ const dynamoDb = DynamoDBDocument.from(new DynamoDB());
 export const getProductByIdHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
+  console.log("Incoming event: ", JSON.stringify(event));
+
   if (!event?.pathParameters?.productId) {
     return response(400, { message: "Product ID not provided" });
   }

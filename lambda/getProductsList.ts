@@ -10,6 +10,8 @@ const dynamoDb = DynamoDBDocument.from(new DynamoDB());
 export const getProductsListHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
+  console.log("Incoming event: ", JSON.stringify(event));
+
   try {
     const productsData = await dynamoDb.scan({
       TableName: PRODUCTS_TABLE,

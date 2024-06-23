@@ -11,6 +11,8 @@ const db = DynamoDBDocument.from(new DynamoDB());
 export const createPruductHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
+  console.log("Incoming event: ", JSON.stringify(event));
+
   if (!event.body) {
     return response(400, {
       message: "invalid request, you are missing the parameter body",
