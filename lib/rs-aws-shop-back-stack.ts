@@ -83,5 +83,11 @@ export class RsAwsShopBackStack extends cdk.Stack {
       "POST",
       new apigateway.LambdaIntegration(createProductFunction),
     );
+
+    productsResource.addCorsPreflight({
+      allowOrigins: cdk.aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: cdk.aws_apigateway.Cors.ALL_METHODS,
+      allowHeaders: cdk.aws_apigateway.Cors.DEFAULT_HEADERS,
+    });
   }
 }
