@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { PRODUCTS_TABLE, STOCKS_TABLE } from "./constants";
+import { PRODUCTS_TABLE, STOCKS_TABLE } from "./helpers/constants";
 import { response } from "./helpers/response";
 
 const dynamoDb = DynamoDBDocument.from(new DynamoDB());
