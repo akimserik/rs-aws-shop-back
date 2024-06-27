@@ -1,30 +1,57 @@
-import products from "./mockProducts";
-import { APIGatewayProxyEvent } from "aws-lambda";
-import { Product } from "../types/product";
-import { headersConfig } from "./headers";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { PRODUCTS_TABLE, STOCKS_TABLE } from "./constants";
+import { response } from "./helpers/response";
 
-type Message = { message: string } | Product;
+const dynamoDb = DynamoDBDocument.from(new DynamoDB());
 
-const response = (statusCode: number, message: Message) => ({
-  statusCode,
-  headers: headersConfig,
-  body: JSON.stringify(message),
-});
+export const getProductByIdHandler = async (
+  event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> => {
+  console.log("Incoming event: ", JSON.stringify(event));
 
-export const getProductByIdHandler = async (event: APIGatewayProxyEvent) => {
+  if (!event?.pathParameters?.productId) {
+    return response(400, { message: "Product ID not provided" });
+  }
+
   try {
-    if (event?.pathParameters?.productId) {
-      const productId = event.pathParameters.productId;
-      const product = products.find((product) => product.id === productId);
+    const productId = event.pathParameters.productId;
 
-      if (product) {
-        return response(200, product);
-      } else {
-        return response(404, { message: "Product not found" });
-      }
-    } else {
-      return response(400, { message: "Product ID not provided" });
+    const productData = await dynamoDb.query({
+      TableName: PRODUCTS_TABLE,
+      KeyConditionExpression: "#id = :id",
+      ExpressionAttributeNames: {
+        "#id": "id",
+      },
+      ExpressionAttributeValues: {
+        ":id": productId,
+      },
+    });
+
+    if (!productData?.Items?.length) {
+      return response(404, { message: "Product not found" });
     }
+
+    const stockData = await dynamoDb.query({
+      TableName: STOCKS_TABLE,
+      KeyConditionExpression: "#product_id = :product_id",
+      ExpressionAttributeNames: {
+        "#product_id": "product_id",
+      },
+      ExpressionAttributeValues: {
+        ":product_id": productId,
+      },
+    });
+
+    const count = stockData?.Items?.length ? stockData.Items[0].count : 0;
+
+    const product = {
+      ...productData?.Items[0],
+      count,
+    };
+
+    return response(200, product);
   } catch (err: any) {
     console.log(err);
     return response(500, {
