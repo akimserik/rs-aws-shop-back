@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { getProductsListHandler } from "../lambda/getProductsList";
-import products from "../lambda/mockProducts";
+import products from "../lambda/data/mockProducts";
 
 jest.mock("../lambda/getMappedProducts", () => ({
   getMappedProducts: () => products,

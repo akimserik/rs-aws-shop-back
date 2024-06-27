@@ -1,4 +1,4 @@
-import { ProductStock, Stock } from "../types/product";
+import { ProductStock, Stock } from "../../types/product";
 
 type Items = Record<string, any>[] | undefined;
 

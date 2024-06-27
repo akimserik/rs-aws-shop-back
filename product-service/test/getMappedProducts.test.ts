@@ -1,4 +1,4 @@
-import { getMappedProducts } from "../lambda/getMappedProducts";
+import { getMappedProducts } from "../lambda/helpers/getMappedProducts";
 
 describe("getMappedProducts", () => {
   it("returns products with stock data", () => {
