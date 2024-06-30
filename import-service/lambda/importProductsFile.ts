@@ -33,7 +33,7 @@ export const importProductsFileHandler = async (
     });
 
     return response(200, {
-      message: `Signed URL for file ${fileName} created: ${signedUrl}`,
+      signedUrl,
     });
   } catch (err: any) {
     console.log(err);
