@@ -17,7 +17,7 @@ export class ImportServiceStack extends cdk.Stack {
       this,
       "ImportProductsFile",
       {
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_20_X,
         code: lambda.Code.fromAsset("lambda"),
         handler: "importProductsFile.importProductsFileHandler",
         environment: {
@@ -39,13 +39,20 @@ export class ImportServiceStack extends cdk.Stack {
     );
 
     // import file parser
+    const csvParserLayer = new lambda.LayerVersion(this, "CsvParserLayer", {
+      code: lambda.Code.fromAsset("lambda-layer/lambda_layer.zip"),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+      description: "A layer that includes the csv-parser package",
+    });
+
     const importFileParserFunction = new lambda.Function(
       this,
       "ImportFileParser",
       {
         code: lambda.Code.fromAsset("lambda"),
         handler: "importFileParser.importFileParserHandler",
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_20_X,
+        layers: [csvParserLayer],
       },
     );
 
