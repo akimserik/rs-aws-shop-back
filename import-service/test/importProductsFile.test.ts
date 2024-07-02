@@ -4,10 +4,8 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { importProductsFileHandler } from "../lambda/importProductsFile";
 
-// Mock the S3 client
 const s3Mock = mockClient(S3Client);
 
-// Mock getSignedUrl
 jest.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: jest.fn(),
 }));

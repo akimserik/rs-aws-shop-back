@@ -2,9 +2,10 @@ import { S3Event } from "aws-lambda";
 import {
   S3Client,
   GetObjectCommand,
-  HeadObjectCommand,
+  CopyObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
-import * as csv from "csv-parser";
+import csv from "csv-parser";
 import { Readable } from "stream";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -24,17 +25,16 @@ export const importFileParserHandler = async (event: S3Event) => {
     };
   }
 
-  const s3Event = event.Records[0].s3;
-  const bucketName = s3Event.bucket.name;
-  const fileName = decodeURIComponent(s3Event.object.key.replace(/\+/g, " "));
+  const record = event.Records[0];
+  const { bucket, object } = record.s3;
+  const bucketName = bucket.name;
+  const { key } = object;
+  const fileName = decodeURIComponent(key.replace(/\+/g, " "));
 
   const params = {
     Bucket: bucketName,
     Key: fileName,
   };
-
-  const { ContentType } = await s3.send(new HeadObjectCommand(params));
-  console.log("CONTENT TYPE:", ContentType);
 
   try {
     const getObjectCommand = new GetObjectCommand(params);
@@ -47,16 +47,33 @@ export const importFileParserHandler = async (event: S3Event) => {
     const records: any[] = [];
     const readableStream = data.Body as Readable;
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       readableStream
         .pipe(csv())
         .on("data", (row) => {
           console.log("Parsed row:", row);
           records.push(row);
         })
-        .on("end", () => {
+        .on("end", async () => {
+          const newKey = `parsed/${key.split("/").pop()}`;
+
+          const copyObjectCommand = new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${key}`,
+            Key: newKey,
+          });
+          await s3.send(copyObjectCommand);
+
+          const deleteObjectCommand = new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+          });
+          await s3.send(deleteObjectCommand);
+
+          console.log(`Moved object from ${key} to ${newKey}`);
+
           console.log("CSV file successfully processed");
-          resolve(null);
+          resolve();
         })
         .on("error", (err) => {
           console.error("Error processing CSV file", err);
