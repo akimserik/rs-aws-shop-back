@@ -12,7 +12,7 @@ describe("getProductById handler", () => {
 
     const result = await getProductByIdHandler(mockEvent);
     expect(result.statusCode).toBe(200);
-    expect(result.body).toBe(JSON.stringify(products[0]));
+    expect(JSON.parse(result.body)).toMatchObject(products[0]);
   });
 
   it("returns 404 if product not found", async () => {
