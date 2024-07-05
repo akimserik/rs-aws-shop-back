@@ -1,12 +1,7 @@
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { PRODUCTS_TABLE, STOCKS_TABLE } from "./helpers/constants";
-import { Product, Stock } from "../types/product";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { randomUUID } from "crypto";
+import { createProduct } from "./helpers/createProductHelper";
+import { PRODUCTS_TABLE, STOCKS_TABLE } from "./helpers/constants";
 import { response } from "./helpers/response";
-
-const db = DynamoDBDocument.from(new DynamoDB());
 
 export const createPruductHandler = async (
   event: APIGatewayProxyEvent,
@@ -22,39 +17,12 @@ export const createPruductHandler = async (
   const itemObject =
     typeof event.body == "object" ? event.body : JSON.parse(event.body);
 
-  const productId = randomUUID();
-
-  const productItem: Product = {
-    id: productId,
-    title: itemObject.title,
-    description: itemObject.description ?? "",
-    price: itemObject.price ?? 0,
-  };
-
-  const stockItem: Stock = {
-    product_id: productId,
-    count: itemObject.count ?? 0,
-  };
-
-  const transactionParams = {
-    TransactItems: [
-      {
-        Put: {
-          TableName: PRODUCTS_TABLE,
-          Item: productItem,
-        },
-      },
-      {
-        Put: {
-          TableName: STOCKS_TABLE,
-          Item: stockItem,
-        },
-      },
-    ],
-  };
-
   try {
-    await db.transactWrite(transactionParams);
+    const productId = await createProduct(
+      itemObject,
+      PRODUCTS_TABLE,
+      STOCKS_TABLE,
+    );
 
     return response(201, {
       message: `New product created with id: ${productId}`,
