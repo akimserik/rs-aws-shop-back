@@ -43,5 +43,5 @@ export const createProduct = async (
 
   await db.transactWrite(transactionParams);
 
-  return productId;
+  return { productId, productItem };
 };

@@ -18,14 +18,16 @@ export const createPruductHandler = async (
     typeof event.body == "object" ? event.body : JSON.parse(event.body);
 
   try {
-    const productId = await createProduct(
+    const { productId, productItem } = await createProduct(
       itemObject,
       PRODUCTS_TABLE,
       STOCKS_TABLE,
     );
 
     return response(201, {
-      message: `New product created with id: ${productId}`,
+      message: `New product created with id: ${productId}, item: ${JSON.stringify(
+        productItem,
+      )}`,
     });
   } catch (dbError) {
     return response(500, { message: JSON.stringify(dbError) });
