@@ -1,4 +1,4 @@
-import { SQSHandler } from "aws-lambda";
+import { SQSEvent, SQSHandler } from "aws-lambda";
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { createProduct } from "./helpers/createProductHelper";
 import { PRODUCTS_TABLE, STOCKS_TABLE, REGION_NAME } from "./helpers/constants";
@@ -6,7 +6,7 @@ import { PRODUCTS_TABLE, STOCKS_TABLE, REGION_NAME } from "./helpers/constants";
 const snsClient = new SNSClient({ region: REGION_NAME });
 const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
-export const catalogBatchProcessHandler: SQSHandler = async (event) => {
+export const catalogBatchProcessHandler = async (event: SQSEvent) => {
   console.log("Incoming event: ", event);
 
   for (const record of event.Records) {
