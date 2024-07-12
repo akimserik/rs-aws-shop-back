@@ -5,6 +5,11 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as sqs from "aws-cdk-lib/aws-sqs";
+import {
+  Authorizer,
+  AuthorizationType,
+  IdentitySource,
+} from "aws-cdk-lib/aws-apigateway";
 import { BUCKET_NAME } from "../lambda/helpers/constants";
 
 export class ImportServiceStack extends cdk.Stack {
@@ -29,11 +34,34 @@ export class ImportServiceStack extends cdk.Stack {
 
     bucket.grantReadWrite(importProductsFileFunction);
 
-    const api = new apigateway.RestApi(this, "ImportApi", {
-      restApiName: "Import Service",
+    // Create Lambda authorizer from existing Lambda function
+    const basicAuthorizerLambda = lambda.Function.fromFunctionArn(
+      this,
+      "basicAuthorizer",
+      "arn:aws:lambda:eu-central-1:767397742395:function:AuthorizationServiceStack-BasicAuthorizerFunctionA-1Q01Mm1srAjl",
+    );
+
+    const basicAuthorizer = new apigateway.TokenAuthorizer(this, "Authorizer", {
+      handler: basicAuthorizerLambda,
+      identitySource: IdentitySource.header("Authorization"),
     });
 
-    const importResource = api.root.addResource("import");
+    // import
+    const api = new apigateway.RestApi(this, "ImportApi", {
+      restApiName: "Import Service",
+      defaultMethodOptions: {
+        authorizer: basicAuthorizer,
+      },
+    });
+
+    const importResource = api.root.addResource("import", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: apigateway.Cors.DEFAULT_HEADERS,
+      },
+    });
+
     importResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(importProductsFileFunction),

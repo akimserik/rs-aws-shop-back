@@ -4,6 +4,7 @@ import {
   StatementEffect,
 } from "aws-lambda";
 import * as dotenv from "dotenv";
+import { headersConfig } from "./helpers/headers";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ export const handler = async (
   if (!event.authorizationToken) {
     return generatePolicy("unauthorized", "Deny", event.methodArn, {
       statusCode: 401,
+      headers: headersConfig,
       message: "Unauthorized",
     });
   }
@@ -48,12 +50,22 @@ export const handler = async (
 
   const storedPassword = process.env[username];
 
-  if (storedPassword && storedPassword === password) {
-    return generatePolicy(username, "Allow", event.methodArn);
-  } else {
+  try {
+    if (storedPassword && storedPassword === password) {
+      console.log("Successfully authorized!");
+      return generatePolicy(username, "Allow", event.methodArn);
+    } else {
+      return generatePolicy("unauthorized", "Deny", event.methodArn, {
+        statusCode: 403,
+        headers: headersConfig,
+        message: "Forbidden",
+      });
+    }
+  } catch (error) {
     return generatePolicy("unauthorized", "Deny", event.methodArn, {
-      statusCode: 403,
-      message: "Forbidden",
+      statusCode: 500,
+      headers: headersConfig,
+      message: "Error during authorizatoion",
     });
   }
 };
