@@ -49,23 +49,55 @@ export class ImportServiceStack extends cdk.Stack {
     // import
     const api = new apigateway.RestApi(this, "ImportApi", {
       restApiName: "Import Service",
-      defaultMethodOptions: {
-        authorizer: basicAuthorizer,
-      },
     });
 
     const importResource = api.root.addResource("import", {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: apigateway.Cors.DEFAULT_HEADERS,
+        allowHeaders: [
+          "Content-Type",
+          "X-Amz-Date",
+          "Authorization",
+          "X-Api-Key",
+          "X-Amz-Security-Token",
+        ],
+        allowCredentials: true,
       },
     });
 
     importResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(importProductsFileFunction),
+      {
+        authorizer: basicAuthorizer,
+        authorizationType: AuthorizationType.CUSTOM,
+      },
     );
+
+    api.addGatewayResponse("UnauthorizedResponse", {
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      statusCode: "401",
+      responseHeaders: {
+        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Credentials": "'true'",
+      },
+      templates: {
+        "application/json": JSON.stringify({ message: "Unauthorized" }),
+      },
+    });
+
+    api.addGatewayResponse("AccessDeniedResponse", {
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      statusCode: "403",
+      responseHeaders: {
+        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Credentials": "'true'",
+      },
+      templates: {
+        "application/json": JSON.stringify({ message: "Access denied" }),
+      },
+    });
 
     // import file parser
     // Get existing SQS queue

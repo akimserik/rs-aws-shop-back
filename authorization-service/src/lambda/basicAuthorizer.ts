@@ -55,6 +55,7 @@ export const handler = async (
       console.log("Successfully authorized!");
       return generatePolicy(username, "Allow", event.methodArn);
     } else {
+      console.log("Unauthorized! Wrong credentials!");
       return generatePolicy("unauthorized", "Deny", event.methodArn, {
         statusCode: 403,
         headers: headersConfig,
@@ -62,6 +63,7 @@ export const handler = async (
       });
     }
   } catch (error) {
+    console.log("Unhandled error!", error);
     return generatePolicy("unauthorized", "Deny", event.methodArn, {
       statusCode: 500,
       headers: headersConfig,

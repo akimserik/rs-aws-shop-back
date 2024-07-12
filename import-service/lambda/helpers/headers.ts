@@ -1,7 +1,7 @@
 export const headersConfig = {
-  "Content-Type": "application/json",
+  "Content-Type": "*",
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "*",
+  "Access-Control-Allow-Headers": "*",
   "Access-Control-Allow-Credentials": "true",
 };
