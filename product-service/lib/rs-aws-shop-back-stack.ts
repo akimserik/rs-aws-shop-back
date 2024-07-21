@@ -2,6 +2,10 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamoDb from "aws-cdk-lib/aws-dynamodb";
+import * as sqs from "aws-cdk-lib/aws-sqs";
+import * as sqsEventSource from "aws-cdk-lib/aws-lambda-event-sources";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import { Construct } from "constructs";
 
 export class RsAwsShopBackStack extends cdk.Stack {
@@ -89,5 +93,44 @@ export class RsAwsShopBackStack extends cdk.Stack {
       allowMethods: cdk.aws_apigateway.Cors.ALL_METHODS,
       allowHeaders: cdk.aws_apigateway.Cors.DEFAULT_HEADERS,
     });
+
+    // SQS Queue
+    const catalogItemsQueue = new sqs.Queue(this, "CatalogItemsQueue", {
+      visibilityTimeout: cdk.Duration.seconds(300),
+    });
+
+    // Create SNS topic
+    const createProductTopic = new sns.Topic(this, "CreateProductTopic");
+
+    // Email subscription
+    createProductTopic.addSubscription(
+      new subscriptions.EmailSubscription("s.akimgereyev@gmail.com"),
+    );
+
+    // Lambda function to process SQS messages
+    const catalogBatchProcessFunction = new lambda.Function(
+      this,
+      "CatalogBatchProcess",
+      {
+        code: lambda.Code.fromAsset("lambda"),
+        handler: "catalogBatchProcess.catalogBatchProcessHandler",
+        runtime: lambda.Runtime.NODEJS_18_X,
+        environment: {
+          PRODUCTS_TABLE: productsTable.tableName,
+          STOCKS_TABLE: stocksTable.tableName,
+          SNS_TOPIC_ARN: createProductTopic.topicArn,
+        },
+      },
+    );
+
+    catalogBatchProcessFunction.addEventSource(
+      new sqsEventSource.SqsEventSource(catalogItemsQueue, {
+        batchSize: 5,
+      }),
+    );
+
+    productsTable.grantReadWriteData(catalogBatchProcessFunction);
+    stocksTable.grantReadWriteData(catalogBatchProcessFunction);
+    createProductTopic.grantPublish(catalogBatchProcessFunction);
   }
 }

@@ -4,6 +4,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import { BUCKET_NAME } from "../lambda/helpers/constants";
 
 export class ImportServiceStack extends cdk.Stack {
@@ -39,6 +40,13 @@ export class ImportServiceStack extends cdk.Stack {
     );
 
     // import file parser
+    // Get existing SQS queue
+    const catalogItemsQueue = sqs.Queue.fromQueueArn(
+      this,
+      "RsAwsShopBackStack-CatalogItemsQueueB3B6CE23-ayoY213GWpom",
+      "arn:aws:sqs:eu-central-1:767397742395:RsAwsShopBackStack-CatalogItemsQueueB3B6CE23-ayoY213GWpom",
+    );
+
     const csvParserLayer = new lambda.LayerVersion(this, "CsvParserLayer", {
       code: lambda.Code.fromAsset("lambda-layer/lambda_layer.zip"),
       compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
@@ -53,6 +61,9 @@ export class ImportServiceStack extends cdk.Stack {
         handler: "importFileParser.importFileParserHandler",
         runtime: lambda.Runtime.NODEJS_20_X,
         layers: [csvParserLayer],
+        environment: {
+          CATALOG_ITEMS_QUEUE_URL: catalogItemsQueue.queueUrl,
+        },
       },
     );
 
@@ -63,5 +74,8 @@ export class ImportServiceStack extends cdk.Stack {
     );
 
     bucket.grantReadWrite(importFileParserFunction);
+
+    // Grant SQS sendMessage permission to the Lambda function
+    catalogItemsQueue.grantSendMessages(importFileParserFunction);
   }
 }

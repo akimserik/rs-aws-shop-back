@@ -6,9 +6,13 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import csv from "csv-parser";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { Readable } from "stream";
+import { CATALOG_ITEMS_QUEUE_URL, REGION_NAME } from "./helpers/constants";
 
-const s3 = new S3Client({ region: process.env.AWS_REGION });
+const s3 = new S3Client({ region: REGION_NAME });
+const sqs = new SQSClient({ region: REGION_NAME });
+const catalogItemsQueueUrl = CATALOG_ITEMS_QUEUE_URL;
 
 export const importFileParserHandler = async (event: S3Event) => {
   if (
@@ -50,9 +54,19 @@ export const importFileParserHandler = async (event: S3Event) => {
     await new Promise<void>((resolve, reject) => {
       readableStream
         .pipe(csv())
-        .on("data", (row) => {
-          console.log("Parsed row:", row);
-          records.push(row);
+        .on("data", async (row) => {
+          try {
+            const sendMessageCommand = new SendMessageCommand({
+              QueueUrl: catalogItemsQueueUrl,
+              MessageBody: JSON.stringify(row),
+            });
+            await sqs.send(sendMessageCommand);
+            console.log("Sent message to SQS:", row);
+            records.push(row);
+          } catch (err) {
+            console.error("Error sending message to SQS:", err);
+            reject(new Error(String(err)));
+          }
         })
         .on("end", async () => {
           const newKey = `parsed/${key.split("/").pop()}`;
@@ -75,9 +89,9 @@ export const importFileParserHandler = async (event: S3Event) => {
           console.log("CSV file successfully processed");
           resolve();
         })
-        .on("error", (err) => {
-          console.error("Error processing CSV file", err);
-          reject(err);
+        .on("error", (error) => {
+          console.error("Error processing CSV file", error);
+          reject(error);
         });
     });
 
